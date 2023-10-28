@@ -1,0 +1,108 @@
+stages:
+  - build
+  - push
+  - deploy
+
+variables:
+  APP_VERSION: "latest"
+  REGISTRY_USER: "sds_registry"
+  REGISTRY_IMAGE: $CI_REGISTRY/$CI_PROJECT_PATH:$APP_VERSION # não alterar
+  GIT_STRATEGY: clone
+
+# Homologação
+# 1
+build-image-homol:
+  stage: build
+  tags:
+    - app-builder
+  rules:
+    - if: $CI_COMMIT_BRANCH == "homol"
+      when: on_success
+  before_script:
+    - echo "NEXT_PUBLIC_URL=https://homologacao.seap.ma.gov.br" >> .env
+    - echo "NEXT_PUBLIC_SERVER=homologacao" >> .env
+  script:
+    - docker build -t $REGISTRY_IMAGE-homol .
+
+# 2
+push-image-to-registry-homol:
+  stage: push
+  tags:
+    - app-builder
+  rules:
+    - if: $CI_COMMIT_BRANCH == "homol"
+      when: on_success
+  before_script:
+    - cat ~/.gitlab-runner-password | docker login -u $REGISTRY_USER --password-stdin $CI_REGISTRY
+  script:
+    - docker push $REGISTRY_IMAGE-homol
+  after_script:
+    - docker logout
+
+# 3
+deploy-homol:
+  stage: deploy
+  tags:
+    - runner-homol
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_REF_NAME == "homol"'
+      when: on_success
+    - if: $CI_COMMIT_BRANCH == "homol"
+      when: on_success
+  before_script:
+    - cat ~/.gitlab-runner-password | docker login -u $REGISTRY_USER --password-stdin $CI_REGISTRY
+  script:
+    - docker pull $REGISTRY_IMAGE-homol
+    - sed -i 's/latest/latest-homol/g' docker-compose.yml
+  after_script:
+    - docker compose up -d --force-recreate
+    - docker logout
+
+# Produção
+# 1
+build-image-prod:
+  stage: build
+  tags:
+    - app-builder
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+      when: on_success
+  before_script:
+    - echo "NEXT_PUBLIC_URL=https://siisp.ma.gov.br" >> .env
+    - echo "NEXT_PUBLIC_SERVER=extranet" >> .env
+  script:
+    - docker build -t $REGISTRY_IMAGE-prod .
+
+# 2
+push-image-to-registry-prod:
+  stage: push
+  tags:
+    - app-builder
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+      when: on_success
+  before_script:
+    - cat ~/.gitlab-runner-password | docker login -u $REGISTRY_USER --password-stdin $CI_REGISTRY
+  script:
+    - docker push $REGISTRY_IMAGE-prod
+  after_script:
+    - docker logout
+
+# 3
+deploy-prod:
+  stage: deploy
+  tags:
+    - runner-siisp-prod
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_REF_NAME == "main"'
+      when: on_success
+    - if: $CI_COMMIT_BRANCH == "main"
+      when: on_success
+  before_script:
+    - cat ~/.gitlab-runner-password | docker login -u $REGISTRY_USER --password-stdin $CI_REGISTRY
+  script:
+    - docker pull $REGISTRY_IMAGE-prod
+    - sed -i 's/latest/latest-prod/g' docker-compose.yml
+  after_script:
+    - docker compose up -d --force-recreate
+    - docker logout

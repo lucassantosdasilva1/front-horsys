@@ -1,0 +1,16 @@
+version: "3.3"
+
+services:
+  front-horsys:
+    restart: always
+    image: registry.seap.ma.gov.br/frontend/front-horsys:latest
+    container_name: front-horsys
+    hostname: front-horsys
+    environment:
+      TZ: America/Fortaleza
+      NEXT_PUBLIC_URL: ${NEXT_PUBLIC_URL}
+      NEXT_PUBLIC_SERVER: ${NEXT_PUBLIC_SERVER}
+    ports:
+      - 3005:3000
+    volumes:
+      - /etc/localtime:/etc/localtime
