@@ -51,7 +51,7 @@ const OPTIONS = {
 export default function Home() {
   const [connected, setConnected] = useState(false);
   const [message, setMessage] = useState("");
-  const [sensores, setSensores] = useState({} as ISensores);
+  const [sensores, setSensores] = useState<ISensores | null>(null);
 
   const chartOptions = {
     chart: {
@@ -160,49 +160,49 @@ export default function Home() {
       <Fundo>
         <Card>
           <div>message: {message}</div>
+          {sensores && (
+            <>
+              <Divider />
+              <Linha>
+                <Coluna xs={24} sm={24} md={24} lg={12}>
+                  <Texto>Umidade do ar</Texto>
+                  <Chart
+                    options={chartOptions}
+                    series={[sensores.umidadeAr]}
+                    type="radialBar"
+                    height="350"
+                  />
+                </Coluna>
+                <Coluna xs={24} sm={24} md={24} lg={12}>
+                  <Texto>Temperatura do ar</Texto>
 
-          <Divider />
+                  <TextoDetaque>{sensores.temperaturaAr}ºC</TextoDetaque>
+                </Coluna>
+              </Linha>
+              <Divider />
+              <Linha>
+                <Coluna xs={24} sm={24} md={24} lg={12}>
+                  <Texto>Umidade do solo</Texto>
+                  <Chart
+                    options={chartOptions}
+                    series={[sensores.umidadeSolo]}
+                    type="radialBar"
+                    height="350"
+                  />
+                </Coluna>
+                <Coluna xs={24} sm={24} md={24} lg={12}>
+                  <Texto>Temperatura do solo</Texto>
 
-          <Linha>
-            <Coluna xs={24} sm={24} md={24} lg={12}>
-              <Texto>Umidade do ar</Texto>
-              <Chart
-                options={chartOptions}
-                series={[sensores.umidadeAr]}
-                type="radialBar"
-                height="350"
-              />
-            </Coluna>
-            <Coluna xs={24} sm={24} md={24} lg={12}>
-              <Texto>Temperatura do ar</Texto>
-
-              <TextoDetaque>{sensores.temperaturaAr}ºC</TextoDetaque>
-            </Coluna>
-          </Linha>
-
-          <Divider />
-          <Linha>
-            <Coluna xs={24} sm={24} md={24} lg={12}>
-              <Texto>Umidade do solo</Texto>
-              <Chart
-                options={chartOptions}
-                series={[sensores.umidadeSolo]}
-                type="radialBar"
-                height="350"
-              />
-            </Coluna>
-            <Coluna xs={24} sm={24} md={24} lg={12}>
-              <Texto>Temperatura do solo</Texto>
-
-              <TextoDetaque>{sensores.temperaturaSolo}ºC</TextoDetaque>
-            </Coluna>
-          </Linha>
-
-          <Linha>
-            <Coluna xs={24} sm={12} md={24} lg={4}>
-              <Texto>Luminosidade: {sensores.luminosidade}</Texto>
-            </Coluna>
-          </Linha>
+                  <TextoDetaque>{sensores.temperaturaSolo}ºC</TextoDetaque>
+                </Coluna>
+              </Linha>
+              <Linha>
+                <Coluna xs={24} sm={12} md={24} lg={4}>
+                  <Texto>Luminosidade: {sensores.luminosidade}</Texto>
+                </Coluna>
+              </Linha>{" "}
+            </>
+          )}
         </Card>
       </Fundo>
     </Spin>
