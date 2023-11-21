@@ -10,9 +10,6 @@ export const {
 
 const api = axios.create({
   baseURL: BASE_URL,
-  headers: {
-    Authorization: `Bearer ${tokenVisitas}`,
-  },
 });
 
 export default api;
